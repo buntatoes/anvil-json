@@ -1,14 +1,20 @@
-# flux-json
+<div align="center">
+  <h1>flux-json</h1>
+  <p><strong>Zero-Dependency Bounded RFC 8259 JSON Parser, Value Tree &amp; Serializer (Proof of Concept)</strong></p>
+  <p>
+    <a href="https://github.com/buntatoes/flux-json/releases/tag/v.02"><img src="https://img.shields.io/badge/release-v.02-e8c37a?style=flat-square" alt="Release v.02" /></a>
+    <img src="https://img.shields.io/badge/status-Proof_of_Concept_(PoC)-d4a359?style=flat-square" alt="Proof of Concept" />
+    <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MPL--2.0-blue?style=flat-square" alt="License MPL-2.0" /></a>
+    <a href="https://github.com/buntatoes/flux-json"><img src="https://img.shields.io/badge/rust-2024_edition-orange?style=flat-square" alt="Rust 2024 Edition" /></a>
+  </p>
+</div>
 
-[![Release](https://img.shields.io/badge/release-v.02-e8c37a.svg)](https://github.com/buntatoes/flux-json/releases/tag/v.02)
-[![License: MPL-2.0](https://img.shields.io/badge/license-MPL--2.0-blue.svg)](./LICENSE)
-[![Edition](https://img.shields.io/badge/rust-2024_edition-orange.svg)](https://github.com/buntatoes/flux-json)
-
-`flux-json` is a standalone, zero-dependency Rust library for parsing, querying, mutating, and serializing **JSON** (RFC 8259) documents with deterministic nesting-depth and payload-size security bounds.
+> [!NOTE]
+> **Proof of Concept (PoC) Notice**: `flux-json` is a standalone, zero-dependency **Proof of Concept** JSON parser, value tree, and serializer authored from scratch by **Buntos** as part of the [**Flux Browser**](https://github.com/buntatoes/flux-browser) engine ecosystem. It parses, queries, mutates, and serializes **JSON** (RFC 8259) documents with deterministic nesting-depth (`MAX_JSON_DEPTH = 64`) and payload-size (`MAX_JSON_BYTES = 16 MiB`) security bounds using zero third-party crates.
 
 ---
 
-## Release Highlights (`v.02`)
+## Features (`v.02`)
 
 - **Bounded Depth & Payload Security Guards (`parse_json_bounded`, `MAX_JSON_DEPTH = 64`, `MAX_JSON_BYTES = 16 MiB`)**:
   - Protects IPC channels, session stores, and script parsers against deeply nested array/object recursion bombs and oversized JSON payloads before allocation.
@@ -67,4 +73,4 @@ Licensed under the Mozilla Public License Version 2.0 ([`MPL-2.0`](./LICENSE)).
 
 ## Author
 
-**Buntos**
+**Buntos** ([@buntatoes](https://github.com/buntatoes))

@@ -1,4 +1,6 @@
-//! Zero-dependency bounded JSON parser, value tree, and compact/pretty serializer.
+//! Zero-dependency bounded JSON parser, value tree, and compact/pretty serializer (Proof of Concept).
+//!
+//! Standalone `MPL-2.0` companion library for the Flux Browser Proof of Concept ecosystem.
 
 use std::fmt;
 
