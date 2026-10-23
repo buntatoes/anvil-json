@@ -10,8 +10,7 @@
   </p>
 </div>
 
-> [!NOTE]
-> **Proof of Concept (PoC) Notice**: `flux-json` is a standalone, zero-dependency **Proof of Concept** JSON parser, value tree, and serializer authored from scratch by **Buntos** as part of the [**Flux Browser**](https://github.com/buntatoes/flux-browser) engine ecosystem. It parses, queries, mutates, and serializes **JSON** (RFC 8259) documents with deterministic nesting-depth (`MAX_JSON_DEPTH = 64`) and payload-size (`MAX_JSON_BYTES = 16 MiB`) security bounds using zero third-party crates.
+`flux-json` is a standalone, zero-dependency Rust library for parsing, querying, mutating, and serializing **JSON** (RFC 8259) documents with deterministic nesting-depth (`MAX_JSON_DEPTH = 64`) and payload-size (`MAX_JSON_BYTES = 16 MiB`) security bounds, built from scratch as part of the [**Flux Browser**](https://github.com/buntatoes/flux-browser) Proof of Concept engine ecosystem.
 
 ---
 

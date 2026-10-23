@@ -2,7 +2,7 @@
 
 ## Proof of Concept (PoC) Notice
 
-`flux-json` is a standalone, zero-dependency **Proof of Concept (PoC)** RFC 8259 JSON parser, value tree, and serializer authored from scratch by **Buntos** as part of the [**Flux Browser**](https://github.com/buntatoes/flux-browser) engine ecosystem.
+`flux-json` is a standalone, zero-dependency **Proof of Concept (PoC)** RFC 8259 JSON parser, value tree, and serializer built from scratch as part of the [**Flux Browser**](https://github.com/buntatoes/flux-browser) engine ecosystem.
 
 ---
 
