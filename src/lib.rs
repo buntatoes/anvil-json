@@ -1,6 +1,12 @@
-//! Proprietary zero-dependency JSON parser, value tree, and serializer.
+//! Zero-dependency bounded JSON parser, value tree, and compact/pretty serializer.
 
 use std::fmt;
+
+/// Default maximum nesting depth for JSON arrays and objects (`64`).
+pub const MAX_JSON_DEPTH: usize = 64;
+
+/// Default maximum input payload size in bytes (`16 MiB`).
+pub const MAX_JSON_BYTES: usize = 16 * 1024 * 1024;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum JsonValue {
@@ -57,6 +63,16 @@ impl JsonValue {
         self.as_f64().map(|n| n as i64)
     }
 
+    pub fn as_u64(&self) -> Option<u64> {
+        self.as_f64().and_then(|n| {
+            if n >= 0.0 && n.is_finite() {
+                Some(n as u64)
+            } else {
+                None
+            }
+        })
+    }
+
     pub fn as_str(&self) -> Option<&str> {
         match self {
             Self::String(s) => Some(s),
@@ -83,6 +99,30 @@ impl JsonValue {
         entries.iter().find(|(k, _)| k == key).map(|(_, v)| v)
     }
 
+    pub fn get_str(&self, key: &str) -> Option<&str> {
+        self.get(key).and_then(Self::as_str)
+    }
+
+    pub fn get_bool(&self, key: &str) -> Option<bool> {
+        self.get(key).and_then(Self::as_bool)
+    }
+
+    pub fn get_i64(&self, key: &str) -> Option<i64> {
+        self.get(key).and_then(Self::as_i64)
+    }
+
+    pub fn get_u64(&self, key: &str) -> Option<u64> {
+        self.get(key).and_then(Self::as_u64)
+    }
+
+    pub fn get_array(&self, key: &str) -> Option<&[JsonValue]> {
+        self.get(key).and_then(Self::as_array)
+    }
+
+    pub fn get_object(&self, key: &str) -> Option<&[(String, JsonValue)]> {
+        self.get(key).and_then(Self::as_object)
+    }
+
     pub fn get_index(&self, index: usize) -> Option<&JsonValue> {
         self.as_array()?.get(index)
     }
@@ -105,12 +145,30 @@ impl JsonValue {
     }
 }
 
-/// Parse a JSON document string into a [`JsonValue`].
+/// Parse a JSON document string into a [`JsonValue`] using default security bounds
+/// ([`MAX_JSON_DEPTH`] and [`MAX_JSON_BYTES`]).
 pub fn parse_json(source: &str) -> Result<JsonValue, JsonError> {
+    parse_json_bounded(source, MAX_JSON_DEPTH, MAX_JSON_BYTES)
+}
+
+/// Parse a JSON document string with explicit nesting depth and byte-size bounds.
+pub fn parse_json_bounded(
+    source: &str,
+    max_depth: usize,
+    max_bytes: usize,
+) -> Result<JsonValue, JsonError> {
+    if source.len() > max_bytes {
+        return Err(JsonError {
+            message: "JSON payload exceeds maximum allowed byte length",
+            offset: max_bytes,
+        });
+    }
     let mut parser = Parser {
         bytes: source.as_bytes(),
         source,
         pos: 0,
+        depth: 0,
+        max_depth,
     };
     let value = parser.parse_value()?;
     parser.skip_whitespace();
@@ -233,6 +291,8 @@ struct Parser<'a> {
     bytes: &'a [u8],
     source: &'a str,
     pos: usize,
+    depth: usize,
+    max_depth: usize,
 }
 
 impl<'a> Parser<'a> {
@@ -254,6 +314,18 @@ impl<'a> Parser<'a> {
 
     fn peek(&self) -> Option<u8> {
         self.bytes.get(self.pos).copied()
+    }
+
+    fn enter_container(&mut self) -> Result<(), JsonError> {
+        if self.depth >= self.max_depth {
+            return Err(self.err("JSON nesting depth exceeds maximum allowed limit"));
+        }
+        self.depth += 1;
+        Ok(())
+    }
+
+    fn leave_container(&mut self) {
+        self.depth = self.depth.saturating_sub(1);
     }
 
     fn parse_value(&mut self) -> Result<JsonValue, JsonError> {
@@ -403,11 +475,13 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_array(&mut self) -> Result<JsonValue, JsonError> {
+        self.enter_container()?;
         self.pos += 1; // '['
         self.skip_whitespace();
         let mut items = Vec::new();
         if self.peek() == Some(b']') {
             self.pos += 1;
+            self.leave_container();
             return Ok(JsonValue::Array(items));
         }
         loop {
@@ -419,6 +493,7 @@ impl<'a> Parser<'a> {
                 }
                 Some(b']') => {
                     self.pos += 1;
+                    self.leave_container();
                     return Ok(JsonValue::Array(items));
                 }
                 _ => return Err(self.err("expected ',' or ']' in array")),
@@ -427,11 +502,13 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_object(&mut self) -> Result<JsonValue, JsonError> {
+        self.enter_container()?;
         self.pos += 1; // '{'
         self.skip_whitespace();
         let mut entries = Vec::new();
         if self.peek() == Some(b'}') {
             self.pos += 1;
+            self.leave_container();
             return Ok(JsonValue::Object(entries));
         }
         loop {
@@ -451,6 +528,7 @@ impl<'a> Parser<'a> {
                 }
                 Some(b'}') => {
                     self.pos += 1;
+                    self.leave_container();
                     return Ok(JsonValue::Object(entries));
                 }
                 _ => return Err(self.err("expected ',' or '}' in object")),
@@ -476,24 +554,19 @@ mod tests {
             ]
         }"#;
         let doc = parse_json(src).unwrap();
-        assert_eq!(doc.get("browser").and_then(JsonValue::as_str), Some("Flux"));
-        assert_eq!(doc.get("version").and_then(JsonValue::as_i64), Some(3));
-        assert_eq!(doc.get("active").and_then(JsonValue::as_bool), Some(true));
+        assert_eq!(doc.get_str("browser"), Some("Flux"));
+        assert_eq!(doc.get_i64("version"), Some(3));
+        assert_eq!(doc.get_u64("version"), Some(3));
+        assert_eq!(doc.get_bool("active"), Some(true));
         assert!(doc.get("nothing").unwrap().is_null());
 
         let bookmarks = doc.get("bookmarks").unwrap();
         assert_eq!(
-            bookmarks
-                .get_index(0)
-                .and_then(|b| b.get("title"))
-                .and_then(JsonValue::as_str),
+            bookmarks.get_index(0).and_then(|b| b.get_str("title")),
             Some("Home\nPage")
         );
         assert_eq!(
-            bookmarks
-                .get_index(1)
-                .and_then(|b| b.get("title"))
-                .and_then(JsonValue::as_str),
+            bookmarks.get_index(1).and_then(|b| b.get_str("title")),
             Some("Unicode Flux")
         );
 
@@ -503,5 +576,16 @@ mod tests {
 
         let pretty = to_json_pretty(&doc);
         assert_eq!(parse_json(&pretty).unwrap(), doc);
+    }
+
+    #[test]
+    fn rejects_excessive_nesting_depth_and_oversized_payloads() {
+        let deep = "[".repeat(MAX_JSON_DEPTH + 2) + &"]".repeat(MAX_JSON_DEPTH + 2);
+        let err = parse_json(&deep).unwrap_err();
+        assert!(err.message.contains("depth"));
+
+        let oversized = format!("\"{}\"", "a".repeat(128));
+        let size_err = parse_json_bounded(&oversized, 16, 64).unwrap_err();
+        assert!(size_err.message.contains("byte length"));
     }
 }
