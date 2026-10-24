@@ -1,6 +1,6 @@
-//! Zero-dependency bounded JSON parser, value tree, and compact/pretty serializer (Proof of Concept).
+//! JSON parser and serializer.
 //!
-//! Standalone `MPL-2.0` companion library for the Flux Browser Proof of Concept ecosystem.
+//! Nesting and input size are capped. Default depth is 64. Default size is 16 MiB.
 
 use std::fmt;
 

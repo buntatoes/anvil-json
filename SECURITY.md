@@ -1,35 +1,19 @@
-# Security Policy
+# Security
 
-## Proof of Concept (PoC) Notice
+Report problems in private:
 
-`flux-json` is a standalone, zero-dependency **Proof of Concept (PoC)** RFC 8259 JSON parser, value tree, and serializer built from scratch as part of the [**Flux Browser**](https://github.com/buntatoes/flux-browser) engine ecosystem.
+https://github.com/buntatoes/flux-json/security/advisories/new
 
----
+The browser repository takes the same kind of report:
 
-## Supported Versions
+https://github.com/buntatoes/flux-browser/security/advisories/new
 
-| Version | Supported |
-| :--- | :---: |
-| `v.02` (Latest) | Yes |
-| `< v.02` | No |
+Do not put the details in a public issue.
 
----
+## What is checked
 
-## Reporting a Vulnerability
+- Input larger than the size cap is rejected. The default is 16 MiB.
+- Nesting deeper than the depth cap is rejected. The default is 64.
+- Callers that use `parse_json_bounded` can set both caps lower.
 
-Please **do not** report security vulnerabilities through public GitHub issues or pull requests.
-
-- **GitHub Private Vulnerability Reporting (Recommended)**: [`https://github.com/buntatoes/flux-json/security/advisories/new`](https://github.com/buntatoes/flux-json/security/advisories/new)
-- **Central Ecosystem Security Portal**: [`https://github.com/buntatoes/flux-browser/security/advisories/new`](https://github.com/buntatoes/flux-browser/security/advisories/new)
-- **Author Attribution**: **Buntos** ([@buntatoes](https://github.com/buntatoes) · `Buntos <324143321+buntatoes@users.noreply.github.com>`)
-
-*(Note: `324143321+buntatoes@users.noreply.github.com` is a GitHub privacy `noreply` commit-attribution address and does not accept direct inbound email; please use GitHub Private Vulnerability Reporting above to contact the maintainer privately.)*
-
----
-
-## Security Controls in `flux-json`
-
-- **Recursion & Payload Size Guards (`parse_json_bounded`)**:
-  - Enforces `MAX_JSON_DEPTH = 64` and `MAX_JSON_BYTES = 16 MiB` by default, preventing stack-overflow recursion bombs and memory exhaustion across IPC channels, session stores, and script `JSON.parse()` calls.
-- **Strict UTF-8 & Surrogate Validation**:
-  - Validates `\uXXXX` escape sequences and UTF-16 surrogate pairs in 100% safe Rust.
+Version 0.2.0 is current.
