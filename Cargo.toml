@@ -1,3 +1,7 @@
+# JSON text to a value tree and back. Depth cap 64. Input cap 16 MiB.
+# Callers: flux-script, flux-net (cookies and policy), flux-sandbox (IPC),
+# flux-browser (profile snapshot and download records).
+
 [package]
 name = "flux-json"
 version = "0.2.0"
