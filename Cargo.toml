@@ -1,6 +1,10 @@
+# JSON text to a value tree and back. Depth cap 64. Input cap 16 MiB.
+# Callers: flux-script, flux-net (cookies and policy), flux-sandbox (IPC),
+# flux-browser (profile snapshot and download records).
+
 [package]
 name = "flux-json"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2024"
 authors = ["Buntos <324143321+buntatoes@users.noreply.github.com>"]
 license = "MPL-2.0"
@@ -10,3 +14,4 @@ homepage = "https://github.com/buntatoes/flux-json"
 readme = "README.md"
 keywords = ["json", "parser", "serializer"]
 categories = ["encoding", "parser-implementations"]
+publish = false
