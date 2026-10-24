@@ -12,12 +12,12 @@
 //! kept. `get` returns the first match. Typed getters return `None` when the
 //! type does not match.
 //!
-//! flux-script parses and writes script values with `parse_json` and
-//! `to_json_string`. flux-net stores cookie and policy state with
+//! root-script parses and writes script values with `parse_json` and
+//! `to_json_string`. root-net stores cookie and policy state with
 //! `parse_json_bounded` and `to_json_string`, using its own caps (depth 16,
-//! 1 MiB) rather than the defaults. flux-sandbox IPC messages use
+//! 1 MiB) rather than the defaults. root-sandbox IPC messages use
 //! `parse_json_bounded` and `to_json_string` with the sandbox caps (depth 32,
-//! 8 MiB). flux-browser profiles use `parse_json` and `to_json_pretty`.
+//! 8 MiB). root-browser profiles use `parse_json` and `to_json_pretty`.
 //! Download records are `JsonValue` trees inside that profile object.
 //!
 //! This crate does not accept comments, trailing commas, or a leading byte
@@ -277,7 +277,7 @@ impl JsonValue {
 ///
 /// The caps are `MAX_JSON_DEPTH` (64) and `MAX_JSON_BYTES` (16 MiB). The
 /// result is the value, or a `JsonError`. Trailing non-whitespace is an
-/// error. flux-script and flux-browser profiles call this. Callers that need
+/// error. root-script and root-browser profiles call this. Callers that need
 /// a tighter cap use `parse_json_bounded`.
 pub fn parse_json(source: &str) -> Result<JsonValue, JsonError> {
     parse_json_bounded(source, MAX_JSON_DEPTH, MAX_JSON_BYTES)
@@ -288,7 +288,7 @@ pub fn parse_json(source: &str) -> Result<JsonValue, JsonError> {
 /// `max_bytes` is a UTF-8 byte length, checked before parsing. Over the cap,
 /// the error offset is `max_bytes`. `max_depth` counts nested arrays and
 /// objects, not scalars. After the value, only space, tab, CR, and LF may
-/// remain. flux-net calls this with depth 16 and 1 MiB. flux-sandbox calls
+/// remain. root-net calls this with depth 16 and 1 MiB. root-sandbox calls
 /// it with depth 32 and 8 MiB. Both are tighter than the defaults.
 pub fn parse_json_bounded(
     source: &str,
@@ -320,8 +320,8 @@ pub fn parse_json_bounded(
 /// Writes `value` as one compact JSON line.
 ///
 /// No extra space is inserted after `:` or `,`. Non-finite numbers become
-/// `null`. Empty containers stay `[]` and `{}`. flux-script, flux-net, and
-/// flux-sandbox call this. There is no depth cap on the way out.
+/// `null`. Empty containers stay `[]` and `{}`. root-script, root-net, and
+/// root-sandbox call this. There is no depth cap on the way out.
 pub fn to_json_string(value: &JsonValue) -> String {
     let mut out = String::new();
     write_value(value, &mut out, None, 0);
@@ -331,7 +331,7 @@ pub fn to_json_string(value: &JsonValue) -> String {
 /// Writes `value` with a two-space indent and a space after each colon.
 ///
 /// Empty containers stay on one line. Nested containers break across lines.
-/// The number and string rules match `to_json_string`. flux-browser profiles
+/// The number and string rules match `to_json_string`. root-browser profiles
 /// call this. The indent width is fixed at two spaces.
 pub fn to_json_pretty(value: &JsonValue) -> String {
     let mut out = String::new();
@@ -794,7 +794,7 @@ mod tests {
     #[test]
     fn parses_and_round_trips_nested_objects_arrays_and_escapes() {
         let src = r#"{
-            "browser": "Flux",
+            "browser": "Root",
             "version": 3,
             "active": true,
             "nothing": null,
@@ -804,7 +804,7 @@ mod tests {
             ]
         }"#;
         let doc = parse_json(src).unwrap();
-        assert_eq!(doc.get_str("browser"), Some("Flux"));
+        assert_eq!(doc.get_str("browser"), Some("Root"));
         assert_eq!(doc.get_i64("version"), Some(3));
         assert_eq!(doc.get_u64("version"), Some(3));
         assert_eq!(doc.get_bool("active"), Some(true));
@@ -817,7 +817,7 @@ mod tests {
         );
         assert_eq!(
             bookmarks.get_index(1).and_then(|b| b.get_str("title")),
-            Some("Unicode Flux")
+            Some("Unicode Root")
         );
 
         let compact = to_json_string(&doc);
