@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Buntato
 //! JSON parser and serializer (RFC 8259), with a depth cap and a byte cap.
 //!
 //! The input is one JSON text. `parse_json` uses the default caps and returns
