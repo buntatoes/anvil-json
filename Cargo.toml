@@ -1,6 +1,6 @@
 # JSON text to a value tree and back. Depth cap 64. Input cap 16 MiB.
-# Callers: anvil-script, anvil-net (cookies and policy), anvil-sandbox (IPC),
-# anvil-browser (profile snapshot and download records).
+# Callers: anvil-script (in anvil-engine), anvil-net (cookies and policy),
+# anvil-sandbox (IPC), and anvil-browser (profile snapshot and download records).
 
 [package]
 name = "anvil-json"
