@@ -10,7 +10,7 @@
   </p>
 </div>
 
-Version 0.3.0.
+Version 0.3.1.
 
 The browser uses it for profiles, the worker pipe, and script values.
 

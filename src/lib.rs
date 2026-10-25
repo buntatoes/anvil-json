@@ -653,8 +653,19 @@ impl<'a> Parser<'a> {
         if self.pos + 4 > self.bytes.len() {
             return Err(self.err("short \\uXXXX hex escape"));
         }
-        let hex = &self.source[self.pos..self.pos + 4];
-        let val = u16::from_str_radix(hex, 16).map_err(|_| self.err("invalid hex digit"))?;
+        // Check the raw bytes first. Slicing `source` at a byte that sits
+        // inside a multi-byte character would panic, and `from_str_radix`
+        // alone would also take a leading `+`.
+        let mut val = 0u16;
+        for &digit in &self.bytes[self.pos..self.pos + 4] {
+            let nibble = match digit {
+                b'0'..=b'9' => digit - b'0',
+                b'a'..=b'f' => digit - b'a' + 10,
+                b'A'..=b'F' => digit - b'A' + 10,
+                _ => return Err(self.err("invalid hex digit")),
+            };
+            val = (val << 4) | u16::from(nibble);
+        }
         self.pos += 4;
         Ok(val)
     }
@@ -839,5 +850,17 @@ mod tests {
         let oversized = format!("\"{}\"", "a".repeat(128));
         let size_err = parse_json_bounded(&oversized, 16, 64).unwrap_err();
         assert!(size_err.message.contains("byte length"));
+    }
+
+    #[test]
+    fn unicode_escape_with_non_ascii_digits_is_an_error() {
+        // A multi-byte character inside the four hex digits used to panic
+        // on a char-boundary slice.
+        let err = parse_json("\"\\u00\u{e9}1\"").unwrap_err();
+        assert!(err.message.contains("hex"));
+        assert!(parse_json("\"\\u\u{1F600}\"").is_err());
+        // A sign is not a hex digit.
+        assert!(parse_json("\"\\u+041\"").is_err());
+        assert_eq!(parse_json("\"\\u00e9\\u00C9\"").unwrap().as_str(), Some("\u{e9}\u{c9}"));
     }
 }
