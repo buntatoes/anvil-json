@@ -800,7 +800,7 @@ mod tests {
             "nothing": null,
             "bookmarks": [
                 { "title": "Home\nPage", "url": "https://example.com" },
-                { "title": "Unicode \u0046\u006c\u0075\u0078", "url": "file:///index.html" }
+                { "title": "Unicode \u0041\u006e\u0076\u0069\u006c", "url": "file:///index.html" }
             ]
         }"#;
         let doc = parse_json(src).unwrap();
