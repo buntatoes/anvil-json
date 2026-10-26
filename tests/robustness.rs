@@ -51,7 +51,11 @@ impl Rng {
 
     /// Value in `0..n`. Returns 0 when `n` is 0.
     fn below(&mut self, n: usize) -> usize {
-        if n == 0 { 0 } else { (self.next_u64() % n as u64) as usize }
+        if n == 0 {
+            0
+        } else {
+            (self.next_u64() % n as u64) as usize
+        }
     }
 
     fn byte(&mut self) -> u8 {
@@ -150,7 +154,10 @@ fn check_case(label: &str, case: usize, input: Vec<u8>, target: fn(&[u8])) {
         }
         Err(mpsc::RecvTimeoutError::Disconnected) => {
             let _ = handle.join();
-            panic!("{label}: case {case} panicked on input {}", preview(&shared));
+            panic!(
+                "{label}: case {case} panicked on input {}",
+                preview(&shared)
+            );
         }
         Err(mpsc::RecvTimeoutError::Timeout) => {
             panic!(
@@ -163,7 +170,12 @@ fn check_case(label: &str, case: usize, input: Vec<u8>, target: fn(&[u8])) {
 }
 
 /// Generate cases from `seed` until the budget is spent and check each one.
-fn run_cases(label: &str, seed: u64, mut generate: impl FnMut(&mut Rng) -> Vec<u8>, target: fn(&[u8])) {
+fn run_cases(
+    label: &str,
+    seed: u64,
+    mut generate: impl FnMut(&mut Rng) -> Vec<u8>,
+    target: fn(&[u8]),
+) {
     let mut rng = Rng::new(seed);
     let budget = test_budget();
     let started = Instant::now();
@@ -177,10 +189,45 @@ fn run_cases(label: &str, seed: u64, mut generate: impl FnMut(&mut Rng) -> Vec<u
 }
 
 const TOKENS: &[&str] = &[
-    "{", "}", "[", "]", ":", ",", "\"", "\"k\"", "\"\\u00e9\"", "\"\\ud83d\\ude00\"", "\"\\ud800\"",
-    "\"\\\"", "\\u", "\\", "true", "false", "null", "nul", "0", "-0", "1.5e10", "1e999", "-1e-999",
-    "12345678901234567890", ".5", "1.", "01", "-", "+1", "e5", " ", "\n", "\t", "\u{0}", "\u{e9}",
-    "\u{1F600}", "/", "NaN", "Infinity",
+    "{",
+    "}",
+    "[",
+    "]",
+    ":",
+    ",",
+    "\"",
+    "\"k\"",
+    "\"\\u00e9\"",
+    "\"\\ud83d\\ude00\"",
+    "\"\\ud800\"",
+    "\"\\\"",
+    "\\u",
+    "\\",
+    "true",
+    "false",
+    "null",
+    "nul",
+    "0",
+    "-0",
+    "1.5e10",
+    "1e999",
+    "-1e-999",
+    "12345678901234567890",
+    ".5",
+    "1.",
+    "01",
+    "-",
+    "+1",
+    "e5",
+    " ",
+    "\n",
+    "\t",
+    "\u{0}",
+    "\u{e9}",
+    "\u{1F600}",
+    "/",
+    "NaN",
+    "Infinity",
 ];
 
 /// Token soup in JSON's alphabet, built so most inputs get past the first byte.
@@ -195,12 +242,18 @@ fn token_soup(rng: &mut Rng) -> Vec<u8> {
 
 /// A random but well-formed document, nested up to `depth`.
 fn valid_value(rng: &mut Rng, depth: usize, out: &mut String) {
-    let choice = if depth == 0 { rng.below(4) } else { rng.below(6) };
+    let choice = if depth == 0 {
+        rng.below(4)
+    } else {
+        rng.below(6)
+    };
     match choice {
         0 => out.push_str(rng.pick(&["true", "false", "null"])),
         1 => out.push_str(&format!("{}", rng.next_u64() as i64 as f64 / 1000.0)),
         2 => out.push_str(rng.pick(&["-0.5e-3", "0", "1E+2", "42"])),
-        3 => out.push_str(rng.pick(&["\"\"", "\"a\\nb\"", "\"\\u0041\\/\"", "\"\u{e9}\u{1F600}\""])),
+        3 => {
+            out.push_str(rng.pick(&["\"\"", "\"a\\nb\"", "\"\\u0041\\/\"", "\"\u{e9}\u{1F600}\""]))
+        }
         4 => {
             out.push('[');
             for i in 0..rng.below(5) {
@@ -241,7 +294,12 @@ fn parse_and_round_trip(input: &[u8]) {
 
 #[test]
 fn random_bytes_do_not_panic() {
-    run_cases("json-random", 11, |rng| rng.bytes(128), parse_and_round_trip);
+    run_cases(
+        "json-random",
+        11,
+        |rng| rng.bytes(128),
+        parse_and_round_trip,
+    );
 }
 
 #[test]
@@ -251,24 +309,35 @@ fn token_soup_does_not_panic() {
 
 #[test]
 fn mutated_documents_do_not_panic() {
-    run_cases("json-mutated", 13, |rng| {
-        let mut doc = String::new();
-        valid_value(rng, 4, &mut doc);
-        mutate(rng, doc.as_bytes())
-    }, parse_and_round_trip);
+    run_cases(
+        "json-mutated",
+        13,
+        |rng| {
+            let mut doc = String::new();
+            valid_value(rng, 4, &mut doc);
+            mutate(rng, doc.as_bytes())
+        },
+        parse_and_round_trip,
+    );
 }
 
 #[test]
 fn valid_documents_round_trip() {
-    run_cases("json-valid", 14, |rng| {
-        let mut doc = String::new();
-        valid_value(rng, 5, &mut doc);
-        doc.into_bytes()
-    }, |input| {
-        let text = std::str::from_utf8(input).unwrap();
-        let value = parse_json(text).unwrap_or_else(|err| panic!("valid JSON rejected: {err} in {text:?}"));
-        assert_eq!(parse_json(&to_json_string(&value)).unwrap(), value);
-    });
+    run_cases(
+        "json-valid",
+        14,
+        |rng| {
+            let mut doc = String::new();
+            valid_value(rng, 5, &mut doc);
+            doc.into_bytes()
+        },
+        |input| {
+            let text = std::str::from_utf8(input).unwrap();
+            let value = parse_json(text)
+                .unwrap_or_else(|err| panic!("valid JSON rejected: {err} in {text:?}"));
+            assert_eq!(parse_json(&to_json_string(&value)).unwrap(), value);
+        },
+    );
 }
 
 #[test]

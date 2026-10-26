@@ -861,6 +861,9 @@ mod tests {
         assert!(parse_json("\"\\u\u{1F600}\"").is_err());
         // A sign is not a hex digit.
         assert!(parse_json("\"\\u+041\"").is_err());
-        assert_eq!(parse_json("\"\\u00e9\\u00C9\"").unwrap().as_str(), Some("\u{e9}\u{c9}"));
+        assert_eq!(
+            parse_json("\"\\u00e9\\u00C9\"").unwrap().as_str(),
+            Some("\u{e9}\u{c9}")
+        );
     }
 }
