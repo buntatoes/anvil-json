@@ -4,7 +4,7 @@
 
 [package]
 name = "anvil-json"
-version = "0.3.1"
+version = "0.3.2"
 edition = "2024"
 rust-version = "1.99.1"
 authors = ["Buntato <324143321+buntatoes@users.noreply.github.com>"]

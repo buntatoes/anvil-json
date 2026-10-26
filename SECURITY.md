@@ -16,4 +16,4 @@ Do not put the details in a public issue.
 - Nesting deeper than the depth cap is rejected. The default is 64.
 - Callers that use `parse_json_bounded` can set both caps lower.
 
-Version 0.3.1 is current.
+Version 0.3.2 is current.
