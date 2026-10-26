@@ -32,7 +32,7 @@ The browser uses it for profiles, the worker pipe, and script values.
 cargo test
 ```
 
-Rust 2024 edition, Rust 1.85.1 or newer. No crates.io dependencies.
+Rust 2024 edition, Rust 1.99.1 or newer. No crates.io dependencies.
 
 ## The other repositories
 

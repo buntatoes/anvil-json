@@ -6,6 +6,7 @@
 name = "anvil-json"
 version = "0.3.1"
 edition = "2024"
+rust-version = "1.99.1"
 authors = ["Buntato <324143321+buntatoes@users.noreply.github.com>"]
 license = "MPL-2.0"
 description = "JSON parser and serializer with a depth cap and a size cap."
